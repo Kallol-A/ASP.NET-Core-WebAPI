@@ -16,30 +16,5 @@ namespace WebApi.Controllers
         {
             return new string[] { "test1", "test2", "test3" };
         }
-
-        // GET api/tests/2
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
-        {
-            return "My test2";
-        }
-
-        // POST api/tests
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/tests/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/tests/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }

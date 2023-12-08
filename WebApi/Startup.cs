@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -34,6 +40,34 @@ namespace WebApi
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
             );
 
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "studentManager",
+                    ValidAudience = "stuman.com",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("jL0fcjRKi3YVNYBEo2VjnDGf4k1sFpX8v2P3VKwnTVY="))
+                };
+            });
+
+            services.AddDistributedMemoryCache(); // Use an in-memory cache for session data
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+                options.Cookie.HttpOnly = true;
+            });
+
+            services.AddHttpContextAccessor();
+
             services.AddScoped<ICategoryService, StudentCategoryService>();
             services.AddScoped<IPasswordHasherService, PasswordHasherService>();
             services.AddScoped<IRoleService, RoleService>();
@@ -49,6 +83,8 @@ namespace WebApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseAuthentication();
+            app.UseSession();
             app.UseMvc();
         }
     }
