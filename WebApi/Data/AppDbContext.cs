@@ -19,7 +19,9 @@ namespace WebApi.Data
         public DbSet<StudentCategoryModel> StudentCategories { get; set; }
         public DbSet<RoleModel> Roles { get; set; }
         public DbSet<PermissionModel> Permissions { get; set; }
+        public DbSet<UserModel> Users { get; set; }
         public DbSet<StudentModel> Students { get; set; }
+        public DbSet<RolePermissionModel> RolePermissions { get; set; }
 
         // Other DbSet properties for additional entities
 
@@ -31,7 +33,9 @@ namespace WebApi.Data
             modelBuilder.Entity<StudentCategoryModel>().ToTable("tb_student_category");
             modelBuilder.Entity<RoleModel>().ToTable("tb_role");
             modelBuilder.Entity<PermissionModel>().ToTable("tb_permission");
+            modelBuilder.Entity<UserModel>().ToTable("tb_user");
             modelBuilder.Entity<StudentModel>().ToTable("tb_student");
+            modelBuilder.Entity<RolePermissionModel>().ToTable("tb_role_permission");
         }
     }
 }

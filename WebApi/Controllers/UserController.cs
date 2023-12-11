@@ -13,21 +13,21 @@ namespace WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StudentController : ControllerBase
+    public class UserController : ControllerBase
     {
-        private readonly IStudentService _studentService;
+        private readonly IUserService _userService;
 
-        public StudentController(IStudentService studentService)
+        public UserController(IUserService userService)
         {
-            _studentService = studentService;
+            _userService = userService;
         }
 
-        // GET api/student
+        // GET api/user
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            var students = _studentService.GetAllStudents();
-            return Ok(students);
+            var users = _userService.GetAllUsers();
+            return Ok(users);
         }
     }
 }

@@ -15,31 +15,78 @@ namespace WebApi.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IStudentService _studentService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUserService _userService;
 
-        public AuthenticationController(IStudentService studentService, IHttpContextAccessor httpContextAccessor)
+        public AuthenticationController(IStudentService studentService, IUserService userService)
         {
             _studentService = studentService;
-            _httpContextAccessor = httpContextAccessor;
+            _userService = userService;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        [HttpPost("student/login")]
+        public async Task<IActionResult> StudentLogin([FromBody] LoginRequest request)
         {
             var result = await _studentService.LoginStudent(request.Email, request.Password);
 
             if (result.Success)
             {
-                _studentService.SetAccessTokenInSession(result.Token);
-
-                // Log or debug to check if the token is saved in the session
-                var accessTokenFromSession = _httpContextAccessor.HttpContext.Session.GetString("AccessToken");
-                Console.WriteLine($"Access token in session: {accessTokenFromSession}");
-
                 return Ok(new { message = result.Message, token = result.Token });
             }
 
             return new ObjectResult(new { message = result.Message }) { StatusCode = 401 };
+        }
+
+        [HttpPost("student/register")]
+        public ActionResult<bool> StudentRegister([FromBody] StudentModel inputModel)
+        {
+            if (inputModel == null)
+            {
+                return BadRequest("Invalid input data.");
+            }
+
+            bool result = _studentService.AddStudent(inputModel.ID_STUDENT_CATEGORY, inputModel.ID_ROLE, inputModel.STUDENT_EMAIL, inputModel.STUDENT_PASSWORD, inputModel.CREATED_BY_USER);
+
+            if (result)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest("Failed to add student.");
+            }
+        }
+
+        [HttpPost("user/login")]
+        public async Task<IActionResult> UserLogin([FromBody] LoginRequest request)
+        {
+            var result = await _userService.LoginUser(request.Email, request.Password);
+
+            if (result.Success)
+            {
+                return Ok(new { message = result.Message, token = result.Token });
+            }
+
+            return new ObjectResult(new { message = result.Message }) { StatusCode = 401 };
+        }
+
+        [HttpPost("user/register")]
+        public ActionResult<bool> UserRegister([FromBody] UserModel inputModel)
+        {
+            if (inputModel == null)
+            {
+                return BadRequest("Invalid input data.");
+            }
+
+            bool result = _userService.AddUser(inputModel.ID_ROLE, inputModel.USER_EMAIL, inputModel.USER_PASSWORD, inputModel.CREATED_BY_USER);
+
+            if (result)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest("Failed to add student.");
+            }
         }
     }
 

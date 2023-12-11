@@ -15,42 +15,41 @@ using WebApi.Models;
 
 namespace WebApi.Services
 {
-    public interface IStudentService
+    public interface IUserService
     {
-        bool AddStudent(long studentCategoryID, long roleID, string studentEmail, string studentPassword, string createdBy);
+        bool AddUser(long roleID, string userEmail, string userPassword, string createdBy);
 
-        Task<LoginResult> LoginStudent(string studentEmail, string studentPassword);
+        Task<LoginResult> LoginUser(string userEmail, string userPassword);
 
-        IEnumerable<StudentModel> GetAllStudents();
+        IEnumerable<UserModel> GetAllUsers();
     }
 
-    public class StudentService : IStudentService
+    public class UserService : IUserService
     {
         private readonly AppDbContext _dbContext;
         private readonly IPasswordHasherService _passwordHasherService;
 
         // Constructor
-        public StudentService(AppDbContext dbContext, IPasswordHasherService passwordHasherService)
+        public UserService(AppDbContext dbContext, IPasswordHasherService passwordHasherService)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _passwordHasherService = passwordHasherService ?? throw new ArgumentNullException(nameof(passwordHasherService));
         }
 
-        public bool AddStudent(long studentCategoryID, long roleID, string studentEmail, string studentPassword, string createdBy)
+        public bool AddUser(long roleID, string userEmail, string userPassword, string createdBy)
         {
             try
             {
-                var _student = new StudentModel
+                var _user = new UserModel
                 {
-                    ID_STUDENT_CATEGORY = studentCategoryID,
                     ID_ROLE = roleID,
-                    STUDENT_EMAIL = studentEmail,
-                    STUDENT_PASSWORD = _passwordHasherService.HashPassword(studentPassword),
+                    USER_EMAIL = userEmail,
+                    USER_PASSWORD = _passwordHasherService.HashPassword(userPassword),
                     CREATED_BY_USER = createdBy,
                     CREATED_AT = DateTime.Now
                 };
 
-                _dbContext.Students.Add(_student);
+                _dbContext.Users.Add(_user);
                 _dbContext.SaveChanges();
 
                 return true; // Operation succeeded
@@ -63,33 +62,33 @@ namespace WebApi.Services
             }
         }
 
-        public IEnumerable<StudentModel> GetAllStudents()
+        public IEnumerable<UserModel> GetAllUsers()
         {
-            return _dbContext.Students
-                .Where(student => student.DELETED_AT == null)
+            return _dbContext.Users
+                .Where(user => user.DELETED_AT == null)
                 .ToList();
         }
 
-        public async Task<LoginResult> LoginStudent(string studentEmail, string studentPassword)
+        public async Task<LoginResult> LoginUser(string userEmail, string userPassword)
         {
-            var student = _dbContext.Students
-                .FirstOrDefault(Student => Student.STUDENT_EMAIL == studentEmail && Student.DELETED_AT == null);
+            var user = _dbContext.Users
+                .FirstOrDefault(User => User.USER_EMAIL == userEmail && User.DELETED_AT == null);
 
-            if (student != null && _passwordHasherService.VerifyPassword(student.STUDENT_PASSWORD, studentPassword))
+            if (user != null && _passwordHasherService.VerifyPassword(user.USER_PASSWORD, userPassword))
             {
-                var token = GenerateJwtToken(studentEmail);
+                var token = GenerateJwtToken(userEmail);
                 return new LoginResult { Success = true, Token = token, Message = "Login successful" };
             }
 
             return new LoginResult { Success = false, Token = null, Message = "Invalid email or password" };
         }
 
-        private string GenerateJwtToken(string studentEmail)
+        private string GenerateJwtToken(string userEmail)
         {
             // Fetch the user information, including the role, from the database
-            var student = _dbContext.Students.FirstOrDefault(s => s.STUDENT_EMAIL == studentEmail && s.DELETED_AT == null);
+            var user = _dbContext.Users.FirstOrDefault(u => u.USER_EMAIL == userEmail && u.DELETED_AT == null);
 
-            if (student == null)
+            if (user == null)
             {
                 // Handle the case where the user is not found
                 // You might want to log an error or throw an exception
@@ -97,7 +96,7 @@ namespace WebApi.Services
             }
 
             // Retrieve the user's role from the database
-            var role = _dbContext.Roles.FirstOrDefault(r => r.ID_ROLE == student.ID_ROLE);
+            var role = _dbContext.Roles.FirstOrDefault(r => r.ID_ROLE == user.ID_ROLE);
 
             if (role == null)
             {
@@ -108,7 +107,7 @@ namespace WebApi.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, studentEmail),
+                new Claim(ClaimTypes.Email, userEmail),
                 new Claim(ClaimTypes.Role, role.ROLE),
                 // Add more claims as needed
                 new Claim("roleID", role.ID_ROLE.ToString()),
@@ -129,12 +128,5 @@ namespace WebApi.Services
 
             return accessToken;
         }
-    }
-
-    public class LoginResult
-    {
-        public bool Success { get; set; }
-        public string Token { get; set; }
-        public string Message { get; set; }
     }
 }

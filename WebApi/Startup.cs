@@ -16,9 +16,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using Microsoft.EntityFrameworkCore;
 using WebApi.Services;
 using WebApi.Data;
-using Microsoft.EntityFrameworkCore;
+using WebApi.Middleware;
 
 namespace WebApi
 {
@@ -59,20 +60,13 @@ namespace WebApi
                 };
             });
 
-            services.AddDistributedMemoryCache(); // Use an in-memory cache for session data
-            services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
-                options.Cookie.HttpOnly = true;
-            });
-
-            services.AddHttpContextAccessor();
-
             services.AddScoped<ICategoryService, StudentCategoryService>();
             services.AddScoped<IPasswordHasherService, PasswordHasherService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IStudentService, StudentService>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -84,7 +78,8 @@ namespace WebApi
             }
 
             app.UseAuthentication();
-            app.UseSession();
+            app.UseMiddleware<EmailVerificationMiddleware>();
+            app.UseMiddleware<PermissionMiddleware>();
             app.UseMvc();
         }
     }

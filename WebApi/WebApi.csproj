@@ -5,13 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Middleware\TokenValidationMiddleware.cs" />
     <Compile Remove="Services\AuthenticationService.cs" />
     <Compile Remove="Services\ICategoryService.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Middleware\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
